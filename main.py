@@ -18,6 +18,17 @@ class LED(EnvExperiment):
 					print("set {leds|ttl_outs|ttl_ins} {on|off}")
 				else:
 					self.set(cmd.split(" ")[1], self.parse_args(cmd.split(" ")[1]), cmd.split(" ")[2])
+			elif "pulse" in cmd:
+				if cmd == "pulse":
+					print("pulse {device|ttl_outs|leds} {count in ms} {length in ms}")
+				else:
+					self.pulse(cmd, self.parse_args(cmd.split(" ")[1]))
+			elif "listen" in cmd:
+				if cmd == "listen":
+					print("listen {ttlX}")
+				else:
+					self.listen(cmd[7:], self.parse_args(cmd[7:]))
+
 			elif "list" in cmd:
 				if "leds" in cmd or "all" in cmd:
 					print(tabulate(self.leds, headers=["Name", "Device"], tablefmt="orgtbl"))
@@ -40,7 +51,24 @@ class LED(EnvExperiment):
 				print("Unknown command")
 
 # ==================== Commands ========================
-	def read(self, cmd, devices):
+
+	def pulse(self, cmd, devices):
+		if devices == None:
+			print("Invalid device")
+		else:
+			arr = cmd.split(" ")
+			for name, dev in devices:
+				print("[*] Sending " + str(arr[2]) + " pulses of length " + str(arr[3]) + " ms to device " + name)
+				self.pulse_device(dev, int(arr[2]), int(arr[3]))
+
+	def listen(self, cmd, devices): # NOT DONE
+		name, dev = devices[0]
+		print("Listening on device " + name)
+		for i in range(10):
+			self.listen_dev(dev)
+			print("Gate changed!!!")
+
+	def read(self, cmd, devices): # NOT DONE
 		if devices == None:
 			print("Invalid device")
 		else:
@@ -82,7 +110,12 @@ class LED(EnvExperiment):
 # ==================== Kernel ========================
 
 	@kernel
-	def read_dev(self, dev):
+	def listen_dev(self, dev): # NOT DONE
+		self.core.break_realtime()
+		return dev.gate_both(1*ms)
+
+	@kernel
+	def read_dev(self, dev): # NOT DONE
 		self.core.break_realtime()
 
 	@kernel
@@ -108,6 +141,13 @@ class LED(EnvExperiment):
 			dev.pulse(10*ms)
 			delay(50*ms)
 
+	@kernel
+	def pulse_device(self, dev, count, length):
+		self.core.break_realtime()
+		for i in range(count):
+			dev.pulse(length*ms)
+			delay(length*ms)
+
 # ==================== Utility ========================
 
 	def parse_args(self, cmd):
@@ -124,9 +164,11 @@ class LED(EnvExperiment):
 			return None
 
 	def print_help(self):
-		print("List devices: list {all|leds|ttl_outs|ttl_ins}")
-		print("Test devices: test {leds|ttl_outs}")
-		print("Set devices: set {leds|ttl_outs} {on|off}")
+		print("List devices: list {all|leds|ttl_outs|ttl_ins|device}")
+		print("Test devices: test {leds|ttl_outs|device}")
+		print("Set devices: set {leds|ttl_outs|device} {on|off}")
+		print("pulse {device|ttl_outs|leds} {count in ms} {length in ms}")
+		print("Listen: listen {device}")
 		print("Other: help, clear, exit")
 
 	def build(self):
