@@ -166,7 +166,7 @@ class LED(EnvExperiment):
 	def print_help(self):
 		print("List devices: list {all|leds|ttl_outs|ttl_ins|device}")
 		print("Test devices: test {leds|ttl_outs|device}")
-		print("Set devices: set {leds|ttl_outs|device} {on|off}")
+		print("Set devices: set {leds|ttl_outs|device} {on|off|input|output}")
 		print("pulse {device|ttl_outs|leds} {count in ms} {length in ms}")
 		print("Listen: listen {device}")
 		print("Other: help, clear, exit")
