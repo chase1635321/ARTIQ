@@ -6,6 +6,7 @@ import time
 class LED(EnvExperiment):
 
 	def main(self):
+		os.system("clear")
 		while True:
 			print(">> ", end="")
 			cmd = input()
@@ -192,12 +193,13 @@ class LED(EnvExperiment):
 			return None
 
 	def print_help(self):
-		print("List devices: list {all|leds|ttl_outs|ttl_ins|device}")
-		print("Test devices: test {leds|ttl_outs|device}")
-		print("Set devices: set {leds|ttl_outs|device} {on|off|input|output}")
+		print("list {all|leds|ttl_outs|ttl_ins|device}")
+		print("test {leds|ttl_outs|device}")
+		print("set {leds|ttl_outs|device} {on|off|input|output}")
 		print("pulse {device|ttl_outs|leds} {count in ms} {length in ms}")
-		print("Listen: listen {device}")
-		print("Other: help, clear, exit")
+		print("listen {device}")
+		print("procedure {file.txt}")
+		print("help, clear, exit")
 
 	def build(self):
 		self.setattr_device("core")
@@ -238,3 +240,4 @@ class LED(EnvExperiment):
 		except KeyboardInterrupt:
 			print("\n[!] Keyboard Interrupt")
 			exit()
+
