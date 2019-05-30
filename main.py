@@ -1,6 +1,7 @@
 from artiq.experiment import *
 import os
 from tabulate import tabulate
+import time
 
 class LED(EnvExperiment):
 
@@ -8,47 +9,74 @@ class LED(EnvExperiment):
 		while True:
 			print(">> ", end="")
 			cmd = input()
-			if "test" in cmd:
-				if cmd == "test":
-					print("test {leds|ttl_outs|ttl_ins}")
-				else:
-					self.test(cmd[5:], self.parse_args(cmd[5:]))
-			elif "set" in cmd:
-				if cmd == "set" or len(cmd.split(" ")) != 3:
-					print("set {leds|ttl_outs|ttl_ins} {on|off}")
-				else:
-					self.set(cmd.split(" ")[1], self.parse_args(cmd.split(" ")[1]), cmd.split(" ")[2])
-			elif "pulse" in cmd:
-				if cmd == "pulse":
-					print("pulse {device|ttl_outs|leds} {count in ms} {length in ms}")
-				else:
-					self.pulse(cmd, self.parse_args(cmd.split(" ")[1]))
-			elif "listen" in cmd:
-				if cmd == "listen":
-					print("listen {ttlX}")
-				else:
-					self.listen(cmd[7:], self.parse_args(cmd[7:]))
 
-			elif "list" in cmd:
-				if "leds" in cmd or "all" in cmd:
-					print(tabulate(self.leds, headers=["Name", "Device"], tablefmt="orgtbl"))
-					print("")
-				if "outs" in cmd or "all" in cmd:
-					print(tabulate(self.ttl_outs, headers=["Name", "Device"], tablefmt="orgtbl"))
-					print("")
-				if "ins" in cmd or "all" in cmd:
-					print(tabulate(self.ttl_ins, headers=["Name", "Device"], tablefmt="orgtbl"))
-					print("")
-				if cmd == "list":
-					print("Syntax: list {all|leds|ttl_outs|ttl_ins}")
-			elif cmd == "help":
-				self.print_help()
-			elif cmd == "clear":
-				os.system("clear")
-			elif cmd == "exit":
-				exit()
+			if "procedure" in cmd:
+				if cmd == "procedure":
+					print("procedure {file.txt}")
+				else:
+					print("[+] Loading procedure " + cmd.split(" ")[1])
+					with open(cmd.split(" ")[1]) as f:
+						for line in f.readlines():
+							print("	> " + line.strip("\n"))
+					print("[?] Are you sure you want to continue? (y/n): ", end="")
+					if input() == "n":
+						pass
+					else:
+						with open(cmd.split(" ")[1]) as f:
+							self.message("Starting procedure")
+							for line in f.readlines():
+								if "delay" in line:
+									print("[*] Delaying for " + line.split(" ")[1].strip("\n") + " seconds")
+									time.sleep(float(line.split(" ")[1]))
+								else:
+									print("[*] Executing: " + line)
+									self.cmd(line.strip("\n"))
+							print("[-] Finished procedure")
 			else:
-				print("Unknown command")
+				self.cmd(cmd)
+
+
+	def cmd(self, cmd):
+		if "test" in cmd:
+			if cmd == "test":
+				print("test {leds|ttl_outs|ttl_ins}")
+			else:
+				self.test(cmd[5:], self.parse_args(cmd[5:]))
+		elif "set" in cmd:
+			if cmd == "set" or len(cmd.split(" ")) != 3:
+				print("set {leds|ttl_outs|ttl_ins} {on|off}")
+			else:
+				self.set(cmd.split(" ")[1], self.parse_args(cmd.split(" ")[1]), cmd.split(" ")[2])
+		elif "pulse" in cmd:
+			if cmd == "pulse":
+				print("pulse {device|ttl_outs|leds} {count in ms} {length in ms}")
+			else:
+				self.pulse(cmd, self.parse_args(cmd.split(" ")[1]))
+		elif "listen" in cmd:
+			if cmd == "listen":
+				print("listen {ttlX}")
+			else:
+				self.listen(cmd[7:], self.parse_args(cmd[7:]))
+		elif "list" in cmd:
+			if "leds" in cmd or "all" in cmd:
+				print(tabulate(self.leds, headers=["Name", "Device"], tablefmt="orgtbl"))
+				print("")
+			if "outs" in cmd or "all" in cmd:
+				print(tabulate(self.ttl_outs, headers=["Name", "Device"], tablefmt="orgtbl"))
+				print("")
+			if "ins" in cmd or "all" in cmd:
+				print(tabulate(self.ttl_ins, headers=["Name", "Device"], tablefmt="orgtbl"))
+				print("")
+			if cmd == "list":
+				print("Syntax: list {all|leds|ttl_outs|ttl_ins}")
+		elif cmd == "help":
+			self.print_help()
+		elif cmd == "clear":
+			os.system("clear")
+		elif cmd == "exit":
+			exit()
+		else:
+			print("Unknown command")
 
 # ==================== Commands ========================
 
