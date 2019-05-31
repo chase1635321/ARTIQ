@@ -7,32 +7,37 @@ class LED(EnvExperiment):
 
 	def main(self):
 		os.system("clear")
+		print("[*] Loaded devices")
+		self.get_modules()
+
 		while True:
 			print(">> ", end="")
 			cmd = input()
 
-			if "procedure" in cmd:
-				if cmd == "procedure":
-					print("procedure {file.txt}")
+			if "run" in cmd:
+				if cmd == "run":
+					print("run {file.txt}")
 				else:
-					print("[+] Loading procedure " + cmd.split(" ")[1])
+					print("[+] Loaded module " + cmd.split(" ")[1])
 					with open(cmd.split(" ")[1]) as f:
 						for line in f.readlines():
-							print("	> " + line.strip("\n"))
-					print("[?] Are you sure you want to continue? (y/n): ", end="")
+							print(" > " + line.strip("\n"))
+					print("[?] Run this module? (y/n): ", end="")
 					if input() == "n":
 						pass
 					else:
 						with open(cmd.split(" ")[1]) as f:
-							self.message("Starting procedure")
+							self.message("Starting module")
 							for line in f.readlines():
 								if "delay" in line:
 									print("[*] Delaying for " + line.split(" ")[1].strip("\n") + " seconds")
 									time.sleep(float(line.split(" ")[1]))
+								elif "#" in line or line.strip("\n") == "":
+									pass
 								else:
 									print("[*] Executing: " + line)
 									self.cmd(line.strip("\n"))
-							print("[-] Finished procedure")
+							print("[-] Finished module")
 			else:
 				self.cmd(cmd)
 
@@ -43,6 +48,8 @@ class LED(EnvExperiment):
 				print("test {leds|ttl_outs|ttl_ins}")
 			else:
 				self.test(cmd[5:], self.parse_args(cmd[5:]))
+		elif "system" in cmd:
+			os.system(cmd[7:])
 		elif "set" in cmd:
 			if cmd == "set" or len(cmd.split(" ")) != 3:
 				print("set {leds|ttl_outs|ttl_ins} {on|off}")
@@ -59,6 +66,8 @@ class LED(EnvExperiment):
 			else:
 				self.listen(cmd[7:], self.parse_args(cmd[7:]))
 		elif "list" in cmd:
+			if "modules" in cmd:
+				self.get_modules()
 			if "leds" in cmd or "all" in cmd:
 				print(tabulate(self.leds, headers=["Name", "Device"], tablefmt="orgtbl"))
 				print("")
@@ -125,6 +134,8 @@ class LED(EnvExperiment):
 					except:
 						print("[!] Cannot set device")
 				self.build()
+			else:
+				print("[!] Invalid state")
 				
 
 	def test(self, cmd, devices):
@@ -193,13 +204,22 @@ class LED(EnvExperiment):
 			return None
 
 	def print_help(self):
-		print("list {all|leds|ttl_outs|ttl_ins|device}")
+		print("list {all|leds|ttl_outs|ttl_ins|device|modules}")
 		print("test {leds|ttl_outs|device}")
 		print("set {leds|ttl_outs|device} {on|off|input|output}")
 		print("pulse {device|ttl_outs|leds} {count in ms} {length in ms}")
 		print("listen {device}")
-		print("procedure {file.txt}")
+		print("run {file.txt}")
+		print("system {bash command}")
 		print("help, clear, exit")
+
+	def get_modules(self):
+		print("[*] Found modules:")
+		for root, dirs, files in os.walk(os.getcwd()):
+			for file in files:
+				if file.endswith(".m"):
+					print(" > " + file)
+
 
 	def build(self):
 		self.setattr_device("core")
