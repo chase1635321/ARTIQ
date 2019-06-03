@@ -1,3 +1,10 @@
+# Problems:
+# After setting input/output, on/off doesn't work
+# Fix listen???
+# led1 seems to be broken
+# system with commands and arguments
+
+
 from artiq.experiment import *
 import os
 from tabulate import tabulate
@@ -18,24 +25,30 @@ class LED(EnvExperiment):
 				if cmd == "run":
 					print("run {file.txt}")
 				else:
-					print("[+] Loaded module " + cmd.split(" ")[1])
-					with open(cmd.split(" ")[1]) as f:
-						for line in f.readlines():
-							print(" > " + line.strip("\n"))
-					print("[?] Run this module? (y/n): ", end="")
-					if input() == "n":
-						pass
+					try:
+						with open(cmd.split(" ")[1]) as f:
+							print("[+] Loaded module " + cmd.split(" ")[1])
+							for line in f.readlines():
+								print(" > " + line.strip("\n"))
+						print("[?] Run this module? (y/n): ", end="")
+						if input() == "n":
+							pass
+					except:
+						print("[!] File not found")
 					else:
 						with open(cmd.split(" ")[1]) as f:
-							self.message("Starting module")
+							self.message("Starting " + cmd.split(" ")[1])
 							for line in f.readlines():
 								if "delay" in line:
 									print("[*] Delaying for " + line.split(" ")[1].strip("\n") + " seconds")
 									time.sleep(float(line.split(" ")[1]))
 								elif "#" in line or line.strip("\n") == "":
 									pass
+								elif "pause" in line:
+									print("[!] Pausing... (Press enter to continue)")
+									input()
 								else:
-									print("[*] Executing: " + line)
+									#print("[*] Executing: " + line)
 									self.cmd(line.strip("\n"))
 							print("[-] Finished module")
 			else:
@@ -48,11 +61,27 @@ class LED(EnvExperiment):
 				print("test {leds|ttl_outs|ttl_ins}")
 			else:
 				self.test(cmd[5:], self.parse_args(cmd[5:]))
+		elif "synch" in cmd:
+			temp = ""
+			arr = []
+			print("Enter multiple commands. To execute, type run, else type exit")
+			while temp != "run" and temp != "exit":
+				print("	>> ", end="")
+				temp = input()
+				arr.append(temp)
+			arr.pop()
+			print("Tasks: " + str(arr))
+			if "run" in temp:
+				for i in arr:
+					self.cmd(i)
+		elif "log" in cmd:
+			print("[*] Printing log. Filtered out new connections, resetting RTIO, and idle kernel messages\n")
+			os.system("artiq_coremgmt log | grep -v \"new connection\" | grep -v \"resetting\" | grep -v \"idle kernel\"")
 		elif "system" in cmd:
 			os.system(cmd[7:])
 		elif "set" in cmd:
 			if cmd == "set" or len(cmd.split(" ")) != 3:
-				print("set {leds|ttl_outs|ttl_ins} {on|off}")
+				print("set {leds|ttl_outs|ttl_ins|device} {on|off}")
 			else:
 				self.set(cmd.split(" ")[1], self.parse_args(cmd.split(" ")[1]), cmd.split(" ")[2])
 		elif "pulse" in cmd:
@@ -64,7 +93,7 @@ class LED(EnvExperiment):
 			if cmd == "listen":
 				print("listen {ttlX}")
 			else:
-				self.listen(cmd[7:], self.parse_args(cmd[7:]))
+				self.test_inputs(cmd[7:], self.parse_args(cmd[7:]), self.parse_args("ttl9"))
 		elif "list" in cmd:
 			if "modules" in cmd:
 				self.get_modules()
@@ -83,10 +112,10 @@ class LED(EnvExperiment):
 			self.print_help()
 		elif cmd == "clear":
 			os.system("clear")
-		elif cmd == "exit":
+		elif cmd == "exit" or cmd == "q":
 			exit()
 		else:
-			print("Unknown command")
+			print("[!] Unknown command")
 
 # ==================== Commands ========================
 
@@ -147,7 +176,29 @@ class LED(EnvExperiment):
 				print("[*] Flashing: {}".format(name))
 				self.test_device(dev)
 
+	def test_inputs(self, cmd, devices, output):
+		outname, outdev = output[0]
+		for name, dev in devices:
+			print("[*] Listening on " + name + " while pulsing on " + outname)
+			print("[!] Pausing... (Press enter when ready)", end='')
+			input()
+			print("[*] Input success: " + str(self.test_input(dev, outdev)))
+			
+
 # ==================== Kernel ========================
+
+	@kernel
+	def test_input(self, ttl_in, ttl_out):
+		n = 42
+		self.core.break_realtime()
+		with parallel:
+			ttl_in.gate_rising(1*ms)
+			with sequential:
+				delay(50*us)
+				for _ in range(n):
+					ttl_out.pulse(2*us)
+					delay(2*us)
+		return ttl_in.count(now_mu()) == n
 
 	@kernel
 	def listen_dev(self, dev): # NOT DONE
@@ -197,6 +248,8 @@ class LED(EnvExperiment):
 			return self.ttl_outs
 		elif cmd == "ttl_ins":
 			return self.ttl_ins
+		elif cmd == "all":
+			return self.leds + self.ttl_outs + self.ttl_ins
 		else:
 			for name, dev in self.leds + self.ttl_outs + self.ttl_ins:
 				if cmd == name:
@@ -211,6 +264,7 @@ class LED(EnvExperiment):
 		print("listen {device}")
 		print("run {file.txt}")
 		print("system {bash command}")
+		print("log")
 		print("help, clear, exit")
 
 	def get_modules(self):
@@ -248,7 +302,9 @@ class LED(EnvExperiment):
 
 
 	def message(self, s):
+		print("")
 		print("*"*30 + " " + s + " " + "*"*30)
+		print("")
 	
 	def run(self):
 		try:
