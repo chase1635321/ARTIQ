@@ -2,8 +2,7 @@
 # After setting input/output, on/off doesn't work
 # Fix listen???
 # led1 seems to be broken
-# system with commands and arguments
-
+# ttl3 input seems to be broken
 
 from artiq.experiment import *
 import os
@@ -25,17 +24,17 @@ class LED(EnvExperiment):
 				if cmd == "run":
 					print("run {file.txt}")
 				else:
-					try:
-						with open(cmd.split(" ")[1]) as f:
-							print("[+] Loaded module " + cmd.split(" ")[1])
-							for line in f.readlines():
-								print(" > " + line.strip("\n"))
-						print("[?] Run this module? (y/n): ", end="")
-						if input() == "n":
-							pass
-					except:
-						print("[!] File not found")
-					else:
+					#try:
+					#	with open(cmd.split(" ")[1]) as f:
+					#		print("[+] Loaded module " + cmd.split(" ")[1])
+					#		for line in f.readlines():
+					#			print(" > " + line.strip("\n"))
+					#	print("[?] Run this module? (y/n): ", end="")
+					#	if input() == "n":
+					#		pass
+					#except:
+					#	print("[!] File not found")
+					#else:
 						with open(cmd.split(" ")[1]) as f:
 							self.message("Starting " + cmd.split(" ")[1])
 							for line in f.readlines():
@@ -56,7 +55,7 @@ class LED(EnvExperiment):
 
 
 	def cmd(self, cmd):
-		if "test" in cmd:
+		if "test " in cmd:
 			if cmd == "test":
 				print("test {leds|ttl_outs|ttl_ins}")
 			else:
@@ -89,11 +88,16 @@ class LED(EnvExperiment):
 				print("pulse {device|ttl_outs|leds} {count in ms} {length in ms}")
 			else:
 				self.pulse(cmd, self.parse_args(cmd.split(" ")[1]))
+		elif "test_input" in cmd:
+			if cmd == "test_input":
+				print("test_input {ttlX}")
+			else:
+				self.test_inputs(cmd[11:], self.parse_args(cmd[11:]), self.parse_args("ttl9"))
 		elif "listen" in cmd:
 			if cmd == "listen":
 				print("listen {ttlX}")
 			else:
-				self.test_inputs(cmd[7:], self.parse_args(cmd[7:]), self.parse_args("ttl9"))
+				self.listen(cmd[7:], self.parse_args(cmd[7:]), self.parse_args("ttl9"))
 		elif "list" in cmd:
 			if "modules" in cmd:
 				self.get_modules()
@@ -123,23 +127,18 @@ class LED(EnvExperiment):
 		if devices == None:
 			print("Invalid device")
 		else:
+			#print("[+] Gathered " + str(len(devices)) + " devices")
 			arr = cmd.split(" ")
 			for name, dev in devices:
 				print("[*] Sending " + str(arr[2]) + " pulses of length " + str(arr[3]) + " ms to device " + name)
 				self.pulse_device(dev, int(arr[2]), int(arr[3]))
 
-	def listen(self, cmd, devices): # NOT DONE
-		name, dev = devices[0]
-		print("Listening on device " + name)
-		for i in range(10):
-			self.listen_dev(dev)
-			print("Gate changed!!!")
 
 	def read(self, cmd, devices): # NOT DONE
 		if devices == None:
-			print("Invalid device")
+			print("[!] Invalid device")
 		else:
-			print("[+] Reading " + str(len(devices)) + " voltages")
+			print("[+] Gathered " + str(len(devices)) + " devices")
 			for name, dev in devices:
 				val = 0
 				val = read_dev(dev)
@@ -147,9 +146,9 @@ class LED(EnvExperiment):
 
 	def set(self, cmd, devices, state):
 		if devices == None:
-			print("Invalid device")
+			print("[!] Invalid device")
 		else:
-			print("[+] Setting " + str(len(devices)) + " devices")
+			#print("[+] Gathered " + str(len(devices)) + " devices")
 			if state == "on" or state == "off":
 				for name,  dev in devices:
 					print("[*] Setting " + name + " to state " + state)
@@ -169,9 +168,9 @@ class LED(EnvExperiment):
 
 	def test(self, cmd, devices):
 		if devices == None:
-			print("Invalid device")
+			print("[!] Invalid device")
 		else:
-			print("[+] Starting test on " + str(len(devices)) + " devices")
+			print("[+] Gathered " + str(len(devices)) + " devices")
 			for name, dev in devices:
 				print("[*] Flashing: {}".format(name))
 				self.test_device(dev)
@@ -184,6 +183,20 @@ class LED(EnvExperiment):
 			input()
 			print("[*] Input success: " + str(self.test_input(dev, outdev)))
 			
+	def listen(self, cmd, devices, output): # NOT DONE
+		if devices == None or output == None:
+			print("[!] Invalid device")
+		else:
+			print("[+] Gathered " + str(len(devices)) + " devices")
+			for name, dev in devices:
+				outname, outdev = output[0]
+				print("[*] Listening on device " + name)
+				#print("[*] Returned: " + str(self.listen_dev(dev, outdev)))
+				temp = self.listen_dev(dev, outdev)
+				if temp == 0:
+					print("[!] Timed out")
+				else:
+					print("[*] Input detected")
 
 # ==================== Kernel ========================
 
@@ -201,9 +214,21 @@ class LED(EnvExperiment):
 		return ttl_in.count(now_mu()) == n
 
 	@kernel
-	def listen_dev(self, dev): # NOT DONE
+	def listen_dev(self, dev, ttl_out): # NOT DONE
 		self.core.break_realtime()
-		return dev.gate_both(1*ms)
+		for i in range(100):
+			with parallel:
+				dev.gate_rising(1*ms)
+				with sequential:
+					delay(50*us)
+					for _ in range(50):
+						ttl_out.pulse(2*us)
+						delay(2*us)
+			temp = dev.count(now_mu())
+			if temp > 0:
+				return temp
+			delay(100*ms)
+		return dev.count(now_mu())
 
 	@kernel
 	def read_dev(self, dev): # NOT DONE
