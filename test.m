@@ -1,8 +1,6 @@
-# This sets led on/off then blinks it
 pulse led0 30 30
 pause
 
-# This sets ttl9 on/off then blinks it
 pulse ttl5 30 30
 pulse ttl6 30 30
 pulse ttl7 30 30
