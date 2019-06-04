@@ -15,6 +15,7 @@ class LED(EnvExperiment):
 		os.system("clear")
 		print("[*] Loaded devices")
 		self.get_modules()
+		print("[*] Type help for a help menu")
 
 		while True:
 			print(">> ", end="")
