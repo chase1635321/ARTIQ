@@ -1,0 +1,60 @@
+conda activate artiq
+device_db.py
+kasli.py
+artiq_session (GUI)
+
+Priority:
+	Get InOut outputs to work
+	watch ttl_ins rise/fall/both (prints on each event)
+
+	states command, lists states of all the pins
+
+	Devices that aren't ttl and led
+	Solder wires to use square wave generator on occiloscope
+	mvd .t back
+
+Todo:
+
+Colored printing
+
+Work on freq command for urukuls
+
+Create graphs based on input patterns
+
+Build objects for devices
+	Object contains methods for on/off/input/output and state information: name, input/output etc
+
+Create 2nd log for script. Print all commands and output
+Create GUI version
+
+Create master @kernel function that can call the others sync/async
+Info command to get info about pin in/out in software. Gets voltage, etc.
+read or get command gets voltage
+
+Ranges of pins, groups of pins
+User defined groups
+
+Synchronous/asynchronous
+
+Print graphs of values over time
+
+ARTIQ Management
+
+Investigate artiq/artiq/examples/no_hardware/repository
+(and others other than no_hardware)
+
+Clear log
+
+Customize PC
+
+
+Tues: Left at 4:30
+Wed: Left at 5:15
+Thurs: Left at 4:20
+Fri: Left at 4:30
+
+Mon: Left 4:15-4:30
+Tues: left at 4:30
+Wed: left at 4:30
+Thurs: Entered 2:30, left 4:30
+Friday:
