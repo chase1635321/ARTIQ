@@ -201,4 +201,53 @@ The listen command will block until and input is detected.
 >> 
 ```
 
+## Tasks
+
+The tasks file is a convinient place to add user defined functions and commands. 
+
+```
+(artiq) chase@artiqbuild:~/scripts$ cat tasks.py 
+from artiq.experiment import *
+
+# This function is run on build()
+
+def tasks_build(self):
+	self.setattr_device("ttl9")
+
+# This function is triggered when a command is run
+
+def task_cmd(self, cmd):
+	if cmd == "task1":
+		print("[*] Running task1")
+		task1(self)
+	else:
+		return False
+	return True
+	
+@kernel
+def task1(self):
+	self.core.break_realtime()
+	for i in range(30):
+		with parallel:
+			self.led0.pulse(2*ms)
+			self.ttl9.pulse(4*ms)
+		delay(30*ms)
+
+
+# This function is triggered by the "help" command
+def tasks_help():
+	print("task1")
+(artiq) chase@artiqbuild:~/scripts$ 
+
+```
+The `task_build()` function is run with the `build()` function in the main script. Every time a command is run the the main script, the `task_cmd()` function is run to check if there is a matching user defined command. @kernel function can be defined in this file according to the artiq python specifications. The `tasks_help()` function is run when the help menu is printed.
+
+We can run the example user defined function with the task1 command.
+
+```
+>> task1
+[*] Running task1
+>> 
+```
+
 
