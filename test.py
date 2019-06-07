@@ -6,6 +6,8 @@ class Tutorial(EnvExperiment):
 		self.setattr_device("ttl0")
 		self.setattr_device("ttl0") # ?
 		self.setattr_device("ttl9")
+		#for i in range(8):
+		#	self.setattr_device("suservo0_ch{}".format(i))
 
 	@kernel
 	def run(self):

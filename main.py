@@ -1,13 +1,11 @@
 # Problems:
-# After setting input/output, on/off doesn't work
+# After setting input/output, on/off doesn't work (Don't rebuild database???)
 # led1 seems to be broken
 # Comment and organize code
 # DMA pulses (getting started docs)
 # Build tcpdump parser
 # Organize multiple folders
-# Seperate file with synchronized tasks
 # Expand help menu
-# Large README help menu with examples
 
 from artiq.experiment import *
 import os
@@ -63,7 +61,6 @@ class LED(EnvExperiment):
 
 
 # ==================== Command Parser ========================
-
 
 	def cmd(self, cmd):
 		if "test " in cmd:
