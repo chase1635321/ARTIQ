@@ -43,7 +43,7 @@ class LED(EnvExperiment):
 					#except:
 					#	print("[!] File not found")
 					#else:
-						with open(cmd.split(" ")[1]) as f:
+						with open("modules/" + cmd.split(" ")[1]) as f:
 							self.message("Starting " + cmd.split(" ")[1])
 							for line in f.readlines():
 								if "delay" in line:
