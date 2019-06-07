@@ -163,7 +163,7 @@ It can also be used with groups of devices.
 [*] Setting ttl_zotino0_clr to state off
 >> 
 ```
-We can also use set to change the mode of a TTTLInOut.
+We can also use `set` to change the mode of a TTTLInOut.
 
 ```
 >> list ttl_ins
@@ -183,7 +183,7 @@ Found output or input
 >> 
 ```
 
-Another command is pulse. It takes two arguments: the number of pulses, and the length of each pulse in ms
+Another command is `pulse`. It takes two arguments: the number of pulses, and the length of each pulse in ms
 
 ```
 >> pulse ttl9 30 30
@@ -191,7 +191,7 @@ Another command is pulse. It takes two arguments: the number of pulses, and the 
 >> 
 ```
 
-The listen command will block until and input is detected.
+The `listen` command will block until and input is detected.
 
 ```
 >> listen ttl0
