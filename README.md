@@ -116,7 +116,6 @@ The same command can be used with ttls. Let's check which ttl outs are avaliable
 | ttl_zotino0_clr       | <artiq.coredevice.ttl.TTLOut object at 0x7f4ac7865198> |
 
 >> 
-
 ```
 Now we can set the state of any one of these
 
@@ -164,3 +163,42 @@ It can also be used with groups of devices.
 [*] Setting ttl_zotino0_clr to state off
 >> 
 ```
+We can also use set to change the mode of a TTTLInOut.
+
+```
+>> list ttl_ins
+| Name   | Device                                                   |
+|--------+----------------------------------------------------------|
+| ttl0   | <artiq.coredevice.ttl.TTLInOut object at 0x7f4ac783ef98> |
+| ttl1   | <artiq.coredevice.ttl.TTLInOut object at 0x7f4ac78f59b0> |
+| ttl2   | <artiq.coredevice.ttl.TTLInOut object at 0x7f4ac7865160> |
+| ttl3   | <artiq.coredevice.ttl.TTLInOut object at 0x7f4ac78654a8> |
+
+>> set ttl0 output
+Found output or input
+[*] Setting ttl0 to an output
+[!] Built database
+>> set ttl0 on
+[*] Setting ttl0 to state on
+>> 
+```
+
+Another command is pulse. It takes two arguments: the number of pulses, and the length of each pulse in ms
+
+```
+>> pulse ttl9 30 30
+[*] Sending 30 pulses of length 30 ms to device ttl9
+>> 
+```
+
+The listen command will block until and input is detected.
+
+```
+>> listen ttl0
+[+] Gathered 1 devices
+[*] Listening on device ttl0
+[*] Input detected
+>> 
+```
+
+
