@@ -79,8 +79,7 @@ There are several commands for interacting with output, the simplest of which is
 [*] Setting led0 to state on
 >> 
 ```
-
-We can check which other outputs are avaliable
+The same command can be used with ttls. Let's check which ttl outs are avaliable. 
 
 ```
 >> list ttl_outs
@@ -119,8 +118,7 @@ We can check which other outputs are avaliable
 >> 
 
 ```
-
-The same command can be used with ttl_outs.
+Now we can set the state of any one of these
 
 ```
 >> set ttl9 on
