@@ -1,20 +1,27 @@
 # Problems:
 # After setting input/output, on/off doesn't work
-# Fix listen???
 # led1 seems to be broken
-# ttl3 input seems to be broken
+# Comment and organize code
+# DMA pulses (getting started docs)
+# Build tcpdump parser
+# Organize multiple folders
+# Seperate file with synchronized tasks
+# Expand help menu
+# Large README help menu with examples
 
 from artiq.experiment import *
 import os
 from tabulate import tabulate
 import time
+from tasks import *
 
 class LED(EnvExperiment):
-
+	
 	def main(self):
 		os.system("clear")
 		print("[*] Loaded devices")
 		self.get_modules()
+		print("[*] Loaded tasks")
 		print("[*] Type help for a help menu")
 
 		while True:
@@ -53,6 +60,9 @@ class LED(EnvExperiment):
 							print("[-] Finished module")
 			else:
 				self.cmd(cmd)
+
+
+# ==================== Command Parser ========================
 
 
 	def cmd(self, cmd):
@@ -119,6 +129,8 @@ class LED(EnvExperiment):
 			os.system("clear")
 		elif cmd == "exit" or cmd == "q":
 			exit()
+		elif task_cmd(self, cmd):
+			pass
 		else:
 			print("[!] Unknown command")
 
@@ -292,6 +304,7 @@ class LED(EnvExperiment):
 		print("system {bash command}")
 		print("log")
 		print("help, clear, exit")
+		tasks_help()
 
 	def get_modules(self):
 		print("[*] Found modules:")
@@ -303,6 +316,12 @@ class LED(EnvExperiment):
 
 	def build(self):
 		self.setattr_device("core")
+		#self.core.reset()
+		self.setattr_device("led0")
+		self.setattr_device("ttl0")
+		self.setattr_device("ttl1")
+
+		tasks_build(self)
 
 		self.leds = dict()
 		self.ttl_outs = dict()
