@@ -206,7 +206,7 @@ The listen command will block until and input is detected.
 The tasks file is a convinient place to add user defined functions and commands. 
 
 ```
-(artiq) chase@artiqbuild:~/scripts$ cat tasks.py 
+(artiq) user@user:~$ cat tasks.py 
 from artiq.experiment import *
 
 # This function is run on build()
@@ -237,10 +237,8 @@ def task1(self):
 # This function is triggered by the "help" command
 def tasks_help():
 	print("task1")
-(artiq) chase@artiqbuild:~/scripts$ 
-
 ```
-The `task_build()` function is run with the `build()` function in the main script. Every time a command is run the the main script, the `task_cmd()` function is run to check if there is a matching user defined command. @kernel function can be defined in this file according to the artiq python specifications. The `tasks_help()` function is run when the help menu is printed.
+The `task_build()` function is run with the `build()` function in the main script. Every time a command is run the the main script, the `task_cmd()` function is run to check if there is a matching user defined command. `@kernel` functions can be defined in this file according to the artiq python specifications. The `tasks_help()` function is run when the help menu is printed.
 
 We can run the example user defined function with the task1 command.
 
@@ -250,4 +248,48 @@ We can run the example user defined function with the task1 command.
 >> 
 ```
 
+## Modules
 
+Modules are scripts that contain lists of commands to be run sequentially. They are contained in the modules/ folder.
+
+```
+(artiq) user@user:$ cat modules/pulse.m 
+
+pulse led0 30 30
+
+pulse ttl5 30 30
+pulse ttl6 30 30
+pulse ttl7 30 30
+pulse ttl8 30 30
+
+pulse ttl9 30 30
+pulse ttl10 30 30
+pulse ttl11 30 30
+pulse ttl12 30 30
+
+(artiq) user@user:~$ 
+```
+
+The script will automatically search for files with the .m extension in the modules folder. They can be executed with the `run` command.
+
+```
+>> list modules
+[*] Found modules:
+ > test.m
+ > pulse.m
+>> run pulse.m
+
+****************************** Starting pulse.m ******************************
+
+[*] Sending 30 pulses of length 30 ms to device led0
+[*] Sending 30 pulses of length 30 ms to device ttl5
+[*] Sending 30 pulses of length 30 ms to device ttl6
+[*] Sending 30 pulses of length 30 ms to device ttl7
+[*] Sending 30 pulses of length 30 ms to device ttl8
+[*] Sending 30 pulses of length 30 ms to device ttl9
+[*] Sending 30 pulses of length 30 ms to device ttl10
+[*] Sending 30 pulses of length 30 ms to device ttl11
+[*] Sending 30 pulses of length 30 ms to device ttl12
+[-] Finished module
+>> 
+```
